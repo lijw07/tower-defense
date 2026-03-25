@@ -2,29 +2,48 @@ extends Node
 
 signal gold_changed(new_amount: int)
 
-const STARTING_GOLD: int = 150
+const STARTING_GOLD: int = 100
 
 var gold: int = STARTING_GOLD
 
-# ── Tower cost scaling ───────────────────────────────────────────────────────
+# ── Per-tower-type cost scaling ──────────────────────────────────────────────
 const COST_SCALE_PER_TOWER: float = 1.5
-var towers_placed: int = 0
 
 signal towers_placed_changed
 
-func get_scaled_cost(base_cost: int) -> int:
-	if towers_placed == 0:
-		return base_cost
-	return int(base_cost * pow(COST_SCALE_PER_TOWER, towers_placed))
+# tower_name → number of that type currently on the map
+var _tower_type_counts: Dictionary = {}
+# tower_name → Array[int] of paid costs, kept sorted ascending
+var _tower_paid_costs: Dictionary = {}
 
-func record_tower_placed() -> void:
-	towers_placed += 1
+func get_scaled_cost(base_cost: int, tower_name: String) -> int:
+	var count: int = _tower_type_counts.get(tower_name, 0)
+	if count == 0:
+		return base_cost
+	return int(base_cost * pow(COST_SCALE_PER_TOWER, count))
+
+func record_tower_placed(tower_name: String, paid_cost: int) -> void:
+	_tower_type_counts[tower_name] = _tower_type_counts.get(tower_name, 0) + 1
+	if not _tower_paid_costs.has(tower_name):
+		_tower_paid_costs[tower_name] = []
+	_tower_paid_costs[tower_name].append(paid_cost)
+	_tower_paid_costs[tower_name].sort()
 	emit_signal("towers_placed_changed")
 
-func record_tower_sold() -> void:
-	if towers_placed > 0:
-		towers_placed -= 1
-		emit_signal("towers_placed_changed")
+## Sell value = half of the highest-cost placed tower of that type.
+func get_sell_value(tower_name: String) -> int:
+	if not _tower_paid_costs.has(tower_name) or _tower_paid_costs[tower_name].size() == 0:
+		return 0
+	var costs: Array = _tower_paid_costs[tower_name]
+	var highest: int = costs[costs.size() - 1]
+	return int(highest / 2.0)
+
+func record_tower_sold(tower_name: String) -> void:
+	if _tower_paid_costs.has(tower_name) and _tower_paid_costs[tower_name].size() > 0:
+		# Remove the highest-cost entry (last element, array is sorted ascending)
+		_tower_paid_costs[tower_name].pop_back()
+	_tower_type_counts[tower_name] = max(0, _tower_type_counts.get(tower_name, 0) - 1)
+	emit_signal("towers_placed_changed")
 
 # ── Session stats ────────────────────────────────────────────────────────────
 var total_damage_dealt: float = 0.0
@@ -78,7 +97,8 @@ func get_time_played_string() -> String:
 
 func reset() -> void:
 	gold = STARTING_GOLD
-	towers_placed = 0
+	_tower_type_counts.clear()
+	_tower_paid_costs.clear()
 	total_damage_dealt = 0.0
 	gold_earned = 0
 	gold_spent = 0

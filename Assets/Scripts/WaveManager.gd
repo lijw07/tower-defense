@@ -26,7 +26,7 @@ var _is_spawning: bool = false
 
 func _ready() -> void:
 	_path = get_parent() as Path2D
-	call_deferred("start_next_wave")
+	# Wave 1 is now triggered by SceneRoot after the opening countdown.
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
@@ -125,6 +125,7 @@ func _spawn_enemy(data: EnemyData, health_scale: float = 1.0, speed_scale: float
 		return
 	var path_follow := PathFollow2D.new()
 	path_follow.loop = false
+	path_follow.rotates = false
 	_path.add_child(path_follow)
 	var enemy = data.scene.instantiate()
 	path_follow.add_child(enemy)

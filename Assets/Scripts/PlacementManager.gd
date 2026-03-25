@@ -65,8 +65,21 @@ func _process(_delta: float) -> void:
 	var mouse_world = _get_world_mouse_position()
 	var snap_pos = _snap_to_tile(mouse_world)
 	var offset = _get_sprite_y_offset(_ghost)
-	_ghost.global_position = snap_pos - Vector2(0, offset)
-	var valid = _is_placement_valid(snap_pos)
+
+	# Check whether the snapped position is actually on the ground tilemap.
+	var tile_coords: Vector2i = _ground_layer.local_to_map(_ground_layer.to_local(snap_pos))
+	var on_ground: bool = _ground_layer.get_cell_source_id(tile_coords) != -1
+
+	if on_ground:
+		_ghost.global_position = snap_pos - Vector2(0, offset)
+		_ghost.z_index = _y_to_z(snap_pos.y)
+	else:
+		# Outside the grid — follow the raw mouse so the ghost stays visible.
+		_ghost.global_position = mouse_world - Vector2(0, offset)
+		_ghost.z_index = _y_to_z(mouse_world.y)
+
+	_ghost.visible = true
+	var valid = on_ground and _is_placement_valid(snap_pos)
 	_ghost.modulate = Color(0.2, 1.0, 0.2, 0.5) if valid else Color(1.0, 0.2, 0.2, 0.5)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -159,12 +172,13 @@ func _is_placement_valid(snapped_world_pos: Vector2) -> bool:
 	return true
 
 func _place_tower(snapped_world_pos: Vector2) -> void:
-	var scaled_cost: int = GameManager.get_scaled_cost(_pending_data.cost)
+	var tower_name: String = _pending_data.tower_name
+	var scaled_cost: int = GameManager.get_scaled_cost(_pending_data.cost, tower_name)
 	if not GameManager.spend_gold(scaled_cost):
 		cancel_placement()
 		return
 
-	GameManager.record_tower_placed()
+	GameManager.record_tower_placed(tower_name, scaled_cost)
 
 	var tile_coords: Vector2i = _ground_layer.local_to_map(
 		_ground_layer.to_local(snapped_world_pos)
@@ -174,6 +188,8 @@ func _place_tower(snapped_world_pos: Vector2) -> void:
 	get_tree().current_scene.add_child(tower)
 	var offset = _get_sprite_y_offset(tower)
 	tower.global_position = snapped_world_pos - Vector2(0, offset)
+	# Towers lower on screen (higher Y) draw on top of towers above them.
+	tower.z_index = _y_to_z(snapped_world_pos.y)
 	tower.initialize(_pending_data)
 
 	# Store tile coords and actual paid cost for sell refunds.
@@ -204,3 +220,8 @@ func _find_sprite(node: Node) -> Sprite2D:
 		if found:
 			return found
 	return null
+
+## Convert a world-Y position to a z_index that is always above the
+## ground tilemap (z_index 0) while preserving relative ordering.
+func _y_to_z(y: float) -> int:
+	return 1000 + int(y)

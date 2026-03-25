@@ -19,6 +19,7 @@ var _tooltip_sell: Label
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	layer = 5
 	_build_shop_bar()
 	_build_tooltip()
 	# Sort towers from cheapest to most expensive
@@ -141,7 +142,7 @@ func _create_tower_button(data: TowerData) -> void:
 		btn.icon = data.icon
 		btn.expand_icon = true
 		btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var scaled: int = GameManager.get_scaled_cost(data.cost)
+	var scaled: int = GameManager.get_scaled_cost(data.cost, data.tower_name)
 	btn.text = "%d g" % scaled
 	btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -157,11 +158,19 @@ func _create_tower_button(data: TowerData) -> void:
 	_update_button_affordability(btn, scaled)
 
 func _on_button_hover(btn: Button, data: TowerData) -> void:
-	var scaled: int = GameManager.get_scaled_cost(data.cost)
+	var scaled: int = GameManager.get_scaled_cost(data.cost, data.tower_name)
+	var sell_val: int = GameManager.get_sell_value(data.tower_name)
+	# Show effective stats with upgrade multipliers
+	var upgrade_mgr: Node = get_node_or_null("/root/UpgradeManager")
+	var eff_dmg: float = data.damage
+	var eff_spd: float = data.attack_speed
+	if upgrade_mgr:
+		eff_dmg = data.damage * upgrade_mgr.get_damage_multiplier(data.tower_name)
+		eff_spd = data.attack_speed / upgrade_mgr.get_speed_multiplier(data.tower_name)
 	_tooltip_name.text = data.tower_name
-	_tooltip_stats.text = "Cost: %d  |  Damage: %d  |  Speed: %.1fs" % [scaled, int(data.damage), data.attack_speed]
+	_tooltip_stats.text = "Cost: %d  |  Damage: %d  |  Speed: %.1fs" % [scaled, int(eff_dmg), eff_spd]
 	_tooltip_desc.text = data.description if data.description != "" else "No description."
-	_tooltip_sell.text = "Sell value: %d gold" % int(scaled / 2.0)
+	_tooltip_sell.text = "Sell value: %d gold" % sell_val
 
 	_tooltip_panel.visible = true
 	# Wait one frame so the panel calculates its size before positioning.
@@ -179,7 +188,7 @@ func _on_button_hover_end() -> void:
 	_tooltip_panel.visible = false
 
 func _on_tower_button_pressed(data: TowerData) -> void:
-	if GameManager.gold >= GameManager.get_scaled_cost(data.cost):
+	if GameManager.gold >= GameManager.get_scaled_cost(data.cost, data.tower_name):
 		emit_signal("tower_selected", data)
 
 func _on_gold_changed(new_amount: int) -> void:
@@ -214,14 +223,14 @@ func _refresh_all_affordability() -> void:
 	for btn in _tower_buttons:
 		if is_instance_valid(btn) and btn.has_meta("tower_data"):
 			var data: TowerData = btn.get_meta("tower_data")
-			var scaled: int = GameManager.get_scaled_cost(data.cost)
+			var scaled: int = GameManager.get_scaled_cost(data.cost, data.tower_name)
 			_update_button_affordability(btn, scaled)
 
 func _refresh_all_costs() -> void:
 	for btn in _tower_buttons:
 		if is_instance_valid(btn) and btn.has_meta("tower_data"):
 			var data: TowerData = btn.get_meta("tower_data")
-			var scaled: int = GameManager.get_scaled_cost(data.cost)
+			var scaled: int = GameManager.get_scaled_cost(data.cost, data.tower_name)
 			btn.text = "%d g" % scaled
 			_update_button_affordability(btn, scaled)
 

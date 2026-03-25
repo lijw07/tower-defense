@@ -19,12 +19,21 @@ config/features=PackedStringArray("4.6", "GL Compatibility")
 GameManager="*res://Assets/Scripts/GameManager.gd"
 UpgradeManager="*res://Assets/Scripts/UpgradeManager.gd"
 
+[display]
+
+window/size/viewport_width=960
+window/size/viewport_height=540
+window/size/resizable=true
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"

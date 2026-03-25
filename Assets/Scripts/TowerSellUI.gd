@@ -49,10 +49,16 @@ func select_tower(tower: Node2D) -> void:
 		return
 	_selected_tower = tower
 	var data: TowerData = tower.tower_data
-	var paid: int = tower.get_meta("paid_cost") if tower.has_meta("paid_cost") else data.cost
-	var sell_value: int = int(paid / 2.0)
+	var sell_value: int = GameManager.get_sell_value(data.tower_name)
+	# Show effective stats with upgrades applied
+	var upgrade_mgr: Node = get_node_or_null("/root/UpgradeManager")
+	var eff_dmg: float = data.damage
+	var eff_spd: float = data.attack_speed
+	if upgrade_mgr:
+		eff_dmg = data.damage * upgrade_mgr.get_damage_multiplier(data.tower_name)
+		eff_spd = data.attack_speed / upgrade_mgr.get_speed_multiplier(data.tower_name)
 	_name_label.text = data.tower_name
-	_stats_label.text = "Damage: %d  |  Speed: %.1fs" % [int(data.damage), data.attack_speed]
+	_stats_label.text = "Damage: %d  |  Speed: %.1fs" % [int(eff_dmg), eff_spd]
 	_desc_label.text = data.description if data.description != "" else "No description."
 	_sell_btn.text = "Sell (%d gold)" % sell_value
 
@@ -80,10 +86,9 @@ func _on_sell_pressed() -> void:
 		deselect()
 		return
 	var data: TowerData = _selected_tower.tower_data
-	var paid: int = _selected_tower.get_meta("paid_cost") if _selected_tower.has_meta("paid_cost") else data.cost
-	var sell_value: int = int(paid / 2.0)
+	var sell_value: int = GameManager.get_sell_value(data.tower_name)
 	GameManager.refund_gold(sell_value)
-	GameManager.record_tower_sold()
+	GameManager.record_tower_sold(data.tower_name)
 	var tower_ref := _selected_tower
 	deselect()
 	emit_signal("tower_sold", tower_ref)

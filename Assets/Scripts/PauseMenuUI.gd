@@ -85,5 +85,9 @@ func _on_exit_pressed() -> void:
 	_is_paused = false
 	_overlay.visible = false
 	_panel.visible = false
+	GameManager.reset()
+	var upgrade_mgr: Node = get_node_or_null("/root/UpgradeManager")
+	if upgrade_mgr:
+		upgrade_mgr.reset()
 	get_tree().paused = false
 	get_tree().change_scene_to_file(MAIN_MENU_PATH)

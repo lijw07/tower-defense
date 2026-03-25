@@ -6,8 +6,15 @@ var _bar_fill_style: StyleBoxFlat
 var _label: Label
 var _container: PanelContainer
 
+var _armor_bar_bg: Panel
+var _armor_bar_fill: Panel
+var _armor_bar_fill_style: StyleBoxFlat
+var _armor_label: Label
+var _armor_row: HBoxContainer
+
 var _max_lives: int = 1
 var _current_lives: int = 1
+var _current_armor: int = 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -39,7 +46,7 @@ func _build_ui() -> void:
 	vbox.add_theme_constant_override("separation", 4)
 	_container.add_child(vbox)
 
-	# Heart icon + label row
+	# ── Health row ──
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 6)
 	vbox.add_child(hbox)
@@ -76,6 +83,46 @@ func _build_ui() -> void:
 	_bar_fill.add_theme_stylebox_override("panel", _bar_fill_style)
 	_bar_bg.add_child(_bar_fill)
 
+	# ── Armor row ──
+	_armor_row = HBoxContainer.new()
+	_armor_row.add_theme_constant_override("separation", 6)
+	vbox.add_child(_armor_row)
+
+	var armor_icon := Label.new()
+	armor_icon.text = "AR"
+	armor_icon.add_theme_font_size_override("font_size", 13)
+	armor_icon.add_theme_color_override("font_color", Color(0.45, 0.65, 0.90))
+	_armor_row.add_child(armor_icon)
+
+	_armor_label = Label.new()
+	_armor_label.add_theme_font_size_override("font_size", 13)
+	_armor_label.add_theme_color_override("font_color", UITheme.TEXT)
+	_armor_row.add_child(_armor_label)
+
+	# Armor bar background
+	_armor_bar_bg = Panel.new()
+	_armor_bar_bg.custom_minimum_size = Vector2(140, 14)
+	var armor_bg_style := StyleBoxFlat.new()
+	armor_bg_style.bg_color = Color(0.15, 0.15, 0.15, 1.0)
+	armor_bg_style.border_color = UITheme.BORDER_LIGHT
+	armor_bg_style.set_border_width_all(1)
+	armor_bg_style.set_corner_radius_all(3)
+	_armor_bar_bg.add_theme_stylebox_override("panel", armor_bg_style)
+	vbox.add_child(_armor_bar_bg)
+
+	# Armor bar fill
+	_armor_bar_fill = Panel.new()
+	_armor_bar_fill.position = Vector2(2, 2)
+	_armor_bar_fill.size = Vector2(0, 10)
+	_armor_bar_fill_style = StyleBoxFlat.new()
+	_armor_bar_fill_style.bg_color = Color(0.35, 0.55, 0.85, 1.0)
+	_armor_bar_fill_style.set_corner_radius_all(2)
+	_armor_bar_fill.add_theme_stylebox_override("panel", _armor_bar_fill_style)
+	_armor_bar_bg.add_child(_armor_bar_fill)
+
+	# Initially hide armor if 0
+	_update_armor_visibility()
+
 func update_health(current: int, maximum: int) -> void:
 	_current_lives = current
 	_max_lives = maximum
@@ -94,3 +141,22 @@ func update_health(current: int, maximum: int) -> void:
 			_bar_fill_style.bg_color = Color(0.85, 0.75, 0.15, 1.0)
 		else:
 			_bar_fill_style.bg_color = Color(0.85, 0.2, 0.2, 1.0)
+
+func update_armor(current: int) -> void:
+	_current_armor = current
+	_armor_label.text = "%d / 10" % clampi(current, 0, 10)
+
+	var ratio: float = clampf(float(current) / 10.0, 0.0, 1.0)
+	var max_width: float = _armor_bar_bg.custom_minimum_size.x - 4.0
+	_armor_bar_fill.size.x = max_width * ratio
+
+	_update_armor_visibility()
+
+func _update_armor_visibility() -> void:
+	# Show armor section only when armor has been purchased at least once
+	var has_armor: bool = _current_armor > 0
+	var upgrade_mgr: Node = get_node_or_null("/root/UpgradeManager")
+	if upgrade_mgr:
+		has_armor = has_armor or upgrade_mgr.get_castle_armor() > 0 or upgrade_mgr._castle_armor_total_purchased > 0
+	_armor_row.visible = has_armor
+	_armor_bar_bg.visible = has_armor

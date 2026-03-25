@@ -100,9 +100,17 @@ func show_game_over() -> void:
 	get_tree().paused = true
 
 func _on_restart_pressed() -> void:
+	_reset_autoloads()
 	get_tree().paused = false
 	get_tree().change_scene_to_file(GAME_SCENE_PATH)
 
 func _on_main_menu_pressed() -> void:
+	_reset_autoloads()
 	get_tree().paused = false
 	get_tree().change_scene_to_file(MAIN_MENU_PATH)
+
+func _reset_autoloads() -> void:
+	GameManager.reset()
+	var upgrade_mgr: Node = get_node_or_null("/root/UpgradeManager")
+	if upgrade_mgr:
+		upgrade_mgr.reset()

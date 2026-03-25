@@ -15,6 +15,19 @@ const COST_SCALE: float = 1.5
 const DAMAGE_PER_LEVEL: float = 0.20   # +20% per level
 const SPEED_PER_LEVEL: float = 0.15    # +15% per level
 
+# ── Castle upgrades ──────────────────────────────────────────────────────────
+signal castle_stats_changed
+
+const CASTLE_HEALTH_BASE_COST: int = 150
+const CASTLE_HEALTH_COST_SCALE: float = 1.5
+const CASTLE_ARMOR_BASE_COST: int = 75
+const CASTLE_ARMOR_COST_SCALE: float = 1.1
+const CASTLE_ARMOR_MAX: int = 10
+
+var _castle_health_level: int = 0       # permanent +1 max HP per level
+var _castle_armor: int = 0              # current armor points (consumable)
+var _castle_armor_total_purchased: int = 0  # lifetime purchases for cost scaling
+
 # ── Ensure a tower entry exists ──────────────────────────────────────────────
 
 func _ensure_tower(tower_name: String) -> void:
@@ -93,9 +106,61 @@ func init_unlocks(tower_list: Array) -> void:
 			_unlocked_towers[data.tower_name] = true
 			emit_signal("tower_unlocked", data.tower_name)
 
+# ── Castle health upgrade ─────────────────────────────────────────────────────
+
+func get_castle_health_level() -> int:
+	return _castle_health_level
+
+func get_castle_health_upgrade_cost() -> int:
+	return int(CASTLE_HEALTH_BASE_COST * pow(CASTLE_HEALTH_COST_SCALE, _castle_health_level))
+
+func buy_castle_health_upgrade() -> bool:
+	var cost := get_castle_health_upgrade_cost()
+	if not GameManager.spend_gold(cost):
+		return false
+	_castle_health_level += 1
+	emit_signal("castle_stats_changed")
+	emit_signal("upgrades_changed")
+	return true
+
+# ── Castle armor ──────────────────────────────────────────────────────────────
+
+func get_castle_armor() -> int:
+	return _castle_armor
+
+func get_castle_armor_cost() -> int:
+	return int(CASTLE_ARMOR_BASE_COST * pow(CASTLE_ARMOR_COST_SCALE, _castle_armor_total_purchased))
+
+func can_buy_armor() -> bool:
+	return _castle_armor < CASTLE_ARMOR_MAX
+
+func buy_castle_armor() -> bool:
+	if _castle_armor >= CASTLE_ARMOR_MAX:
+		return false
+	var cost := get_castle_armor_cost()
+	if not GameManager.spend_gold(cost):
+		return false
+	_castle_armor += 1
+	_castle_armor_total_purchased += 1
+	emit_signal("castle_stats_changed")
+	emit_signal("upgrades_changed")
+	return true
+
+## Called by Castle when armor absorbs a hit. Returns true if armor was available.
+func consume_armor() -> bool:
+	if _castle_armor <= 0:
+		return false
+	_castle_armor -= 1
+	emit_signal("castle_stats_changed")
+	return true
+
 # ── Reset ────────────────────────────────────────────────────────────────────
 
 func reset() -> void:
 	_tower_upgrades.clear()
 	_unlocked_towers.clear()
+	_castle_health_level = 0
+	_castle_armor = 0
+	_castle_armor_total_purchased = 0
 	emit_signal("upgrades_changed")
+	emit_signal("castle_stats_changed")

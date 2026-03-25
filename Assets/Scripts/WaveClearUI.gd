@@ -54,6 +54,15 @@ func _build_ui() -> void:
 
 	add_child(_panel)
 
+func show_wave_starting(wave_number: int) -> void:
+	if not is_inside_tree():
+		return
+	_wave_label.text = "Wave %d Starting" % wave_number
+	_seconds_left = COUNTDOWN_DURATION
+	_update_countdown_text()
+	_panel.visible = true
+	_countdown_timer.start()
+
 func show_wave_complete(wave_number: int) -> void:
 	if not is_inside_tree():
 		return

@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://c5tl5wx81xmlh" path="res://Assets/Scripts/WaveManager.gd" id="10_6ynwd"]
 [ext_resource type="Script" uid="uid://okgr1lwhyukl" path="res://Assets/Scripts/SceneRoot.gd" id="12_scene"]
 [ext_resource type="PackedScene" path="res://Assets/Scene/game_over_ui.tscn" id="13_goui"]
-[ext_resource type="PackedScene" path="res://Assets/Scene/tower_shop_ui.tscn" id="14_shop"]
+[ext_resource type="PackedScene" uid="uid://dj2o6xnrc0f71" path="res://Assets/Scene/tower_shop_ui.tscn" id="14_shop"]
 [ext_resource type="Script" uid="uid://b4nmgscfhbvna" path="res://Assets/Scripts/PlacementManager.gd" id="15_place"]
 [ext_resource type="PackedScene" path="res://Assets/Scene/wave_clear_ui.tscn" id="16_wave_clear"]
 [ext_resource type="PackedScene" path="res://Assets/Scene/tower_sell_ui.tscn" id="17_sell"]
@@ -32,7 +32,7 @@ point_count = 7
 script = ExtResource("12_scene")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=129409900]
-zoom = Vector2(3, 3)
+zoom = Vector2(2.5, 2.5)
 
 [node name="Ground" parent="." unique_id=1895181922 instance=ExtResource("1_wskab")]
 
@@ -66,6 +66,7 @@ script = ExtResource("15_place")
 
 [node name="CastleBlue" parent="." unique_id=227214491 instance=ExtResource("8_atycb")]
 position = Vector2(-40, 93)
+max_lives = 5
 
 [node name="CastleTowerBlue" parent="." unique_id=1649473510 instance=ExtResource("9_j31b1")]
 position = Vector2(-58, 63)

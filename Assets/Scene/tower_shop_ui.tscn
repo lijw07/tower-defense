@@ -1,14 +1,15 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dj2o6xnrc0f71"]
 
-[ext_resource type="Script" path="res://Assets/Scripts/TowerShopUI.gd" id="1_script"]
-[ext_resource type="Resource" path="res://Resource/Towers/ArcherTowerData.tres" id="2_archer"]
-[ext_resource type="Resource" path="res://Resource/Towers/CrossbowTowerData.tres" id="3_crossbow"]
-[ext_resource type="Resource" path="res://Resource/Towers/CannonTowerData.tres" id="4_cannon"]
-[ext_resource type="Resource" path="res://Resource/Towers/IceWizardTowerData.tres" id="5_ice"]
-[ext_resource type="Resource" path="res://Resource/Towers/LightningTowerData.tres" id="6_lightning"]
-[ext_resource type="Resource" path="res://Resource/Towers/PoisonTowerData.tres" id="7_poison"]
+[ext_resource type="Script" uid="uid://bpmqsmhtm6uyi" path="res://Assets/Scripts/TowerShopUI.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bk7x2ue5ym7w1" path="res://Assets/Scripts/TowerData.gd" id="2_86hxu"]
+[ext_resource type="Resource" uid="uid://h5qugpns7vmd" path="res://Resource/Towers/ArcherTowerData.tres" id="2_archer"]
+[ext_resource type="Resource" uid="uid://vna4aqc7vke7" path="res://Resource/Towers/CrossbowTowerData.tres" id="3_crossbow"]
+[ext_resource type="Resource" uid="uid://boqpk7adsb5ta" path="res://Resource/Towers/CannonTowerData.tres" id="4_cannon"]
+[ext_resource type="Resource" uid="uid://b2fls21e2x525" path="res://Resource/Towers/IceWizardTowerData.tres" id="5_ice"]
+[ext_resource type="Resource" uid="uid://ci521uniyw54c" path="res://Resource/Towers/LightningTowerData.tres" id="6_lightning"]
+[ext_resource type="Resource" uid="uid://dqxuxvq3gy3f" path="res://Resource/Towers/PoisonTowerData.tres" id="7_poison"]
 
-[node name="TowerShopUI" type="CanvasLayer"]
+[node name="TowerShopUI" type="CanvasLayer" unique_id=2121034957]
 layer = 5
 script = ExtResource("1_script")
-tower_data_list = [ExtResource("2_archer"), ExtResource("3_crossbow"), ExtResource("4_cannon"), ExtResource("5_ice"), ExtResource("6_lightning"), ExtResource("7_poison")]
+tower_data_list = Array[ExtResource("2_86hxu")]([ExtResource("2_archer"), ExtResource("3_crossbow"), ExtResource("4_cannon"), ExtResource("5_ice"), ExtResource("6_lightning"), ExtResource("7_poison")])

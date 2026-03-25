@@ -43,4 +43,5 @@ animations = [{
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=230781711]
 texture_filter = 1
 sprite_frames = SubResource("SpriteFrames_580fm")
+autoplay = &"default"
 frame_progress = 0.65622497
