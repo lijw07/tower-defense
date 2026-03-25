@@ -1,6 +1,6 @@
 extends Node2D
 
-const SPEED: float = 150.0
+const SPEED: float = 300.0
 
 var _target: Node2D = null
 var _damage: float = 10.0

@@ -8,5 +8,5 @@ script = ExtResource("1_xvt45")
 enemy_name = "Ghost"
 scene = ExtResource("1_15ncf")
 speed = 180.0
-health = 60.0
+health = 150.0
 metadata/_custom_type_script = "uid://daiuak44pcfwq"

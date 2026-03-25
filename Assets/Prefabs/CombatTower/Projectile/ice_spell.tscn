@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://b3ta1043mh1fy"]
 
 [ext_resource type="Texture2D" uid="uid://4edqcg2hmknq" path="res://Assets/Towers/Combat Towers Projectiles/spr_tower_ice_wizard_projectile.png" id="1_pklsl"]
-[ext_resource type="Script" path="res://Assets/Scripts/Projectile.gd" id="2_proj"]
+[ext_resource type="Script" path="res://Assets/Scripts/IceSpell.gd" id="2_proj"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_18nwr"]
 radius = 2.0

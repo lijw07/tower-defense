@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="TowerData" format=3]
+[gd_resource type="Resource" script_class="TowerData" format=3 uid="uid://ci521uniyw54c"]
 
-[ext_resource type="Script" path="res://Assets/Scripts/TowerData.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bk7x2ue5ym7w1" path="res://Assets/Scripts/TowerData.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://dkjm7mwx7stre" path="res://Assets/Prefabs/CombatTower/lightning_tower.tscn" id="2_scene"]
 [ext_resource type="PackedScene" uid="uid://ho6j885mkik0" path="res://Assets/Prefabs/CombatTower/Projectile/lightning.tscn" id="3_proj"]
 [ext_resource type="Texture2D" uid="uid://becd02victmdt" path="res://Assets/Towers/Combat Towers/spr_tower_lightning_tower.png" id="4_icon"]
@@ -8,9 +8,11 @@
 [resource]
 script = ExtResource("1_script")
 tower_name = "Lightning"
+description = "Strikes with chain lightning that jumps to up to 3 nearby enemies. Each jump deals 60% of the previous hit."
 scene = ExtResource("2_scene")
 projectile_scene = ExtResource("3_proj")
-cost = 90
+cost = 175
+unlock_cost = 600
 damage = 45.0
-attack_speed = 0.4
+attack_speed = 1.2
 icon = ExtResource("4_icon")

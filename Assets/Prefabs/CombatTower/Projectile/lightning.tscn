@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://ho6j885mkik0"]
 
 [ext_resource type="Texture2D" uid="uid://bff5atjnyeo2g" path="res://Assets/Towers/Combat Towers Projectiles/spr_tower_lightning_tower_projectile.png" id="1_13ft5"]
-[ext_resource type="Script" path="res://Assets/Scripts/Projectile.gd" id="2_proj"]
+[ext_resource type="Script" path="res://Assets/Scripts/LightningBolt.gd" id="2_proj"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_g1f4v"]
 size = Vector2(2, 4)

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dccfumuwwk4yh"]
 
 [ext_resource type="Texture2D" uid="uid://b8ngytqdg13nr" path="res://Assets/Towers/Combat Towers Projectiles/spr_tower_poison_wizard_projectile.png" id="1_2maa5"]
-[ext_resource type="Script" path="res://Assets/Scripts/Projectile.gd" id="2_proj"]
+[ext_resource type="Script" path="res://Assets/Scripts/PoisonBolt.gd" id="2_proj"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_tsse2"]
 radius = 2.0

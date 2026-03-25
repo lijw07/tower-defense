@@ -1,10 +1,10 @@
 [gd_resource type="Resource" script_class="WaveData" format=3 uid="uid://ihqdnprls7mk"]
 
 [ext_resource type="Script" uid="uid://bk23rqe7v7tpj" path="res://Assets/Scripts/WaveData.gd" id="1_script"]
-[ext_resource type="Resource" uid="uid://bfcvf2a1ae5k1" path="res://Resource/Entry/SlimeEntry.tres" id="2_slime"]
+[ext_resource type="Script" uid="uid://bntii5awebcpn" path="res://Assets/Scripts/WaveEntry.gd" id="1_y18fl"]
+[ext_resource type="Resource" path="res://Resource/Entry/SlimeEntry_W1.tres" id="2_entry"]
 
 [resource]
 script = ExtResource("1_script")
-wave_number = 1
-entries = [ExtResource("2_slime")]
+entries = Array[ExtResource("1_y18fl")]([ExtResource("2_entry")])
 metadata/_custom_type_script = "uid://bk23rqe7v7tpj"

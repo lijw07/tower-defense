@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="TowerData" format=3]
+[gd_resource type="Resource" script_class="TowerData" format=3 uid="uid://vna4aqc7vke7"]
 
-[ext_resource type="Script" path="res://Assets/Scripts/TowerData.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bk7x2ue5ym7w1" path="res://Assets/Scripts/TowerData.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://bifkdxlscuoif" path="res://Assets/Prefabs/CombatTower/crossbow_tower.tscn" id="2_scene"]
 [ext_resource type="PackedScene" uid="uid://cunahuo8vkjwf" path="res://Assets/Prefabs/CombatTower/Projectile/crossbow_arrow.tscn" id="3_proj"]
 [ext_resource type="Texture2D" uid="uid://d4a6uqofs0u40" path="res://Assets/Towers/Combat Towers/spr_tower_crossbow.png" id="4_icon"]
@@ -8,9 +8,9 @@
 [resource]
 script = ExtResource("1_script")
 tower_name = "Crossbow"
+description = "Fires heavy bolts that deal high single-target damage. Ideal for picking off tough enemies."
 scene = ExtResource("2_scene")
 projectile_scene = ExtResource("3_proj")
-cost = 75
+unlock_cost = 200
 damage = 35.0
-attack_speed = 0.6
 icon = ExtResource("4_icon")

@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="TowerData" format=3]
+[gd_resource type="Resource" script_class="TowerData" format=3 uid="uid://dqxuxvq3gy3f"]
 
-[ext_resource type="Script" path="res://Assets/Scripts/TowerData.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bk7x2ue5ym7w1" path="res://Assets/Scripts/TowerData.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://c4df6vm7niqpk" path="res://Assets/Prefabs/CombatTower/posion_tower.tscn" id="2_scene"]
 [ext_resource type="PackedScene" uid="uid://dccfumuwwk4yh" path="res://Assets/Prefabs/CombatTower/Projectile/posion.tscn" id="3_proj"]
 [ext_resource type="Texture2D" uid="uid://r2nbbb7gitvl" path="res://Assets/Towers/Combat Towers/spr_tower_poison_wizard.png" id="4_icon"]
@@ -8,9 +8,11 @@
 [resource]
 script = ExtResource("1_script")
 tower_name = "Poison"
+description = "Hurls toxic bolts that poison enemies, dealing damage over 4 seconds. Low upfront hit but strong over time."
 scene = ExtResource("2_scene")
 projectile_scene = ExtResource("3_proj")
-cost = 70
+cost = 150
+unlock_cost = 450
 damage = 15.0
-attack_speed = 0.5
+attack_speed = 1.5
 icon = ExtResource("4_icon")

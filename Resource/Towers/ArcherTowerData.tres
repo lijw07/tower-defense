@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="TowerData" format=3]
+[gd_resource type="Resource" script_class="TowerData" format=3 uid="uid://h5qugpns7vmd"]
 
-[ext_resource type="Script" path="res://Assets/Scripts/TowerData.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bk7x2ue5ym7w1" path="res://Assets/Scripts/TowerData.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://b8uht6ofalgkm" path="res://Assets/Prefabs/CombatTower/archer_tower.tscn" id="2_scene"]
 [ext_resource type="PackedScene" uid="uid://jfqovi8ml7lm" path="res://Assets/Prefabs/CombatTower/Projectile/arrow.tscn" id="3_proj"]
 [ext_resource type="Texture2D" uid="uid://ko7f4ixfrse" path="res://Assets/Towers/Combat Towers/spr_tower_archer.png" id="4_icon"]
@@ -8,9 +8,10 @@
 [resource]
 script = ExtResource("1_script")
 tower_name = "Archer"
+description = "A reliable marksman with fast attack speed. Great all-round tower for early and mid game."
 scene = ExtResource("2_scene")
 projectile_scene = ExtResource("3_proj")
-cost = 50
+cost = 25
 damage = 25.0
-attack_speed = 0.5
+attack_speed = 0.8
 icon = ExtResource("4_icon")

@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="WaveData" format=3]
+[gd_resource type="Resource" script_class="WaveData" format=3 uid="uid://bjd0qk47jiblh"]
 
+[ext_resource type="Script" uid="uid://bntii5awebcpn" path="res://Assets/Scripts/WaveEntry.gd" id="1_6bo3k"]
 [ext_resource type="Script" uid="uid://bk23rqe7v7tpj" path="res://Assets/Scripts/WaveData.gd" id="1_script"]
-[ext_resource type="Resource" path="res://Resource/Entry/DemonEntry.tres" id="2_demon"]
-[ext_resource type="Resource" uid="uid://b2ki6hsyh4gq3" path="res://Resource/Entry/BigSlime.tres" id="3_bigslime"]
+[ext_resource type="Resource" path="res://Resource/Entry/BatEntry_W5.tres" id="2_bat"]
+[ext_resource type="Resource" path="res://Resource/Entry/GoblinEntry.tres" id="3_goblin"]
 
 [resource]
 script = ExtResource("1_script")
 wave_number = 5
-entries = [ExtResource("2_demon"), ExtResource("3_bigslime")]
-time_between_batches = 2.0
+entries = Array[ExtResource("1_6bo3k")]([ExtResource("2_bat"), ExtResource("3_goblin")])
 metadata/_custom_type_script = "uid://bk23rqe7v7tpj"

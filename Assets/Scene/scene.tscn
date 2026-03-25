@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cxa23h0uuqah0"]
 
 [ext_resource type="PackedScene" uid="uid://hgtpopuo8uve" path="res://Assets/Scene/ground.tscn" id="1_wskab"]
+[ext_resource type="Script" uid="uid://bk23rqe7v7tpj" path="res://Assets/Scripts/WaveData.gd" id="6_kwnq3"]
 [ext_resource type="PackedScene" uid="uid://ca5qngr51gfs4" path="res://Assets/Prefabs/Castle/castle_blue.tscn" id="8_atycb"]
 [ext_resource type="PackedScene" uid="uid://b074w6fdhy242" path="res://Assets/Prefabs/CastleTower/castle_tower_blue.tscn" id="9_j31b1"]
 [ext_resource type="Script" uid="uid://c5tl5wx81xmlh" path="res://Assets/Scripts/WaveManager.gd" id="10_6ynwd"]
@@ -8,13 +9,18 @@
 [ext_resource type="PackedScene" path="res://Assets/Scene/game_over_ui.tscn" id="13_goui"]
 [ext_resource type="PackedScene" path="res://Assets/Scene/tower_shop_ui.tscn" id="14_shop"]
 [ext_resource type="Script" uid="uid://b4nmgscfhbvna" path="res://Assets/Scripts/PlacementManager.gd" id="15_place"]
+[ext_resource type="PackedScene" path="res://Assets/Scene/wave_clear_ui.tscn" id="16_wave_clear"]
+[ext_resource type="PackedScene" path="res://Assets/Scene/tower_sell_ui.tscn" id="17_sell"]
+[ext_resource type="PackedScene" path="res://Assets/Scene/pause_menu_ui.tscn" id="18_pause"]
+[ext_resource type="PackedScene" path="res://Assets/Scene/health_bar_ui.tscn" id="19_health"]
+[ext_resource type="PackedScene" path="res://Assets/Scene/upgrade_shop_ui.tscn" id="20_upgrade"]
 [ext_resource type="Resource" uid="uid://ihqdnprls7mk" path="res://Resource/Waves/Wave1.tres" id="w1"]
 [ext_resource type="Resource" uid="uid://w86myk6vubni" path="res://Resource/Waves/Wave2.tres" id="w2"]
-[ext_resource type="Resource" path="res://Resource/Waves/Wave3.tres" id="w3"]
-[ext_resource type="Resource" path="res://Resource/Waves/Wave4.tres" id="w4"]
-[ext_resource type="Resource" path="res://Resource/Waves/Wave5.tres" id="w5"]
-[ext_resource type="Resource" path="res://Resource/Waves/Wave6.tres" id="w6"]
-[ext_resource type="Resource" path="res://Resource/Waves/Wave7.tres" id="w7"]
+[ext_resource type="Resource" uid="uid://dy4p6u21s7dpr" path="res://Resource/Waves/Wave3.tres" id="w3"]
+[ext_resource type="Resource" uid="uid://dp7rktelaunk4" path="res://Resource/Waves/Wave4.tres" id="w4"]
+[ext_resource type="Resource" uid="uid://bjd0qk47jiblh" path="res://Resource/Waves/Wave5.tres" id="w5"]
+[ext_resource type="Resource" uid="uid://doa511uqhyquh" path="res://Resource/Waves/Wave6.tres" id="w6"]
+[ext_resource type="Resource" uid="uid://t3epp1v5w4ie" path="res://Resource/Waves/Wave7.tres" id="w7"]
 
 [sub_resource type="Curve2D" id="Curve2D_dgmkv"]
 _data = {
@@ -30,12 +36,6 @@ zoom = Vector2(3, 3)
 
 [node name="Ground" parent="." unique_id=1895181922 instance=ExtResource("1_wskab")]
 
-[node name="CastleBlue" parent="." unique_id=104611945 instance=ExtResource("8_atycb")]
-position = Vector2(-40, 93)
-
-[node name="CastleTowerBlue" parent="." unique_id=1649473510 instance=ExtResource("9_j31b1")]
-position = Vector2(-116, 71)
-
 [node name="Path2D" type="Path2D" parent="." unique_id=1986241844]
 curve = SubResource("Curve2D_dgmkv")
 
@@ -45,11 +45,30 @@ rotation = -0.007462548
 
 [node name="WaveManager" type="Node" parent="Path2D" unique_id=1312423637]
 script = ExtResource("10_6ynwd")
-waves = [ExtResource("w1"), ExtResource("w2"), ExtResource("w3"), ExtResource("w4"), ExtResource("w5"), ExtResource("w6"), ExtResource("w7")]
+waves = Array[ExtResource("6_kwnq3")]([ExtResource("w1"), ExtResource("w2"), ExtResource("w3"), ExtResource("w4"), ExtResource("w5"), ExtResource("w6"), ExtResource("w7")])
 
 [node name="GameOverUI" parent="." unique_id=1182784826 instance=ExtResource("13_goui")]
 
 [node name="TowerShopUI" parent="." unique_id=694331919 instance=ExtResource("14_shop")]
 
+[node name="WaveClearUI" parent="." unique_id=434064932 instance=ExtResource("16_wave_clear")]
+
+[node name="TowerSellUI" parent="." unique_id=889778058 instance=ExtResource("17_sell")]
+
+[node name="PauseMenuUI" parent="." unique_id=1582939194 instance=ExtResource("18_pause")]
+
+[node name="HealthBarUI" parent="." unique_id=1159426763 instance=ExtResource("19_health")]
+
+[node name="UpgradeShopUI" parent="." unique_id=1237751826 instance=ExtResource("20_upgrade")]
+
 [node name="PlacementManager" type="Node" parent="." unique_id=1319619396]
 script = ExtResource("15_place")
+
+[node name="CastleBlue" parent="." unique_id=227214491 instance=ExtResource("8_atycb")]
+position = Vector2(-40, 93)
+
+[node name="CastleTowerBlue" parent="." unique_id=1649473510 instance=ExtResource("9_j31b1")]
+position = Vector2(-58, 63)
+
+[node name="CastleTowerBlue2" parent="." unique_id=1519840211 instance=ExtResource("9_j31b1")]
+position = Vector2(-18, 64)

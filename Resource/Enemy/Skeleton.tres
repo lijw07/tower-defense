@@ -8,5 +8,5 @@ script = ExtResource("1_4ortj")
 enemy_name = "Skeleton"
 scene = ExtResource("1_6dfhm")
 speed = 45.0
-health = 30.0
+health = 75.0
 metadata/_custom_type_script = "uid://daiuak44pcfwq"

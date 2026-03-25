@@ -7,8 +7,6 @@
 [ext_resource type="PackedScene" uid="uid://dh8ok5g3hmtfd" path="res://Assets/Prefabs/Decorations/spr_rock_02.tscn" id="5_2w0gu"]
 [ext_resource type="PackedScene" uid="uid://e8sqn2rg5iiv" path="res://Assets/Prefabs/Decorations/spr_rock_03.tscn" id="6_xhpu3"]
 [ext_resource type="PackedScene" uid="uid://cutc0h67m1ncd" path="res://Assets/Prefabs/Decorations/spr_tree_01_normal.tscn" id="7_wql11"]
-[ext_resource type="PackedScene" uid="uid://ca5qngr51gfs4" path="res://Assets/Prefabs/Castle/castle_blue.tscn" id="8_2w0gu"]
-[ext_resource type="PackedScene" uid="uid://b074w6fdhy242" path="res://Assets/Prefabs/CastleTower/castle_tower_blue.tscn" id="9_xhpu3"]
 
 [node name="Ground" type="TileMapLayer" unique_id=1895181922]
 texture_filter = 1
@@ -39,7 +37,7 @@ position = Vector2(-56, 24)
 position = Vector2(-120, -72)
 
 [node name="SprRock04" parent="." unique_id=24999444 instance=ExtResource("4_rgsi6")]
-position = Vector2(-10, 74.5)
+position = Vector2(11, 74)
 
 [node name="SprRock02" parent="." unique_id=967269473 instance=ExtResource("5_2w0gu")]
 position = Vector2(-88, 88)
@@ -76,9 +74,3 @@ position = Vector2(-160, -80)
 
 [node name="SprTree01Normal12" parent="." unique_id=740048533 instance=ExtResource("7_wql11")]
 position = Vector2(152, 16)
-
-[node name="CastleBlue" parent="." unique_id=227214491 instance=ExtResource("8_2w0gu")]
-position = Vector2(-40, 93)
-
-[node name="CastleTowerBlue" parent="." unique_id=1649473510 instance=ExtResource("9_xhpu3")]
-position = Vector2(-116, 71)

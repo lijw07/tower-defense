@@ -1,12 +1,11 @@
-[gd_resource type="Resource" script_class="WaveData" format=3]
+[gd_resource type="Resource" script_class="WaveData" format=3 uid="uid://dy4p6u21s7dpr"]
 
+[ext_resource type="Script" uid="uid://bntii5awebcpn" path="res://Assets/Scripts/WaveEntry.gd" id="1_ce4aw"]
 [ext_resource type="Script" uid="uid://bk23rqe7v7tpj" path="res://Assets/Scripts/WaveData.gd" id="1_script"]
-[ext_resource type="Resource" path="res://Resource/Entry/GoblinEntry.tres" id="2_goblin"]
-[ext_resource type="Resource" path="res://Resource/Entry/SkeletonEntry.tres" id="3_skeleton"]
+[ext_resource type="Resource" path="res://Resource/Entry/SlimeEntry_W3.tres" id="2_entry"]
 
 [resource]
 script = ExtResource("1_script")
 wave_number = 3
-entries = [ExtResource("2_goblin"), ExtResource("3_skeleton")]
-time_between_batches = 2.0
+entries = Array[ExtResource("1_ce4aw")]([ExtResource("2_entry")])
 metadata/_custom_type_script = "uid://bk23rqe7v7tpj"
