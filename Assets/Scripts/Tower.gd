@@ -68,10 +68,20 @@ func _clean_dead_enemies() -> void:
 	_enemies_in_range = valid
 
 func _pick_target() -> Node2D:
+	# Only target enemies visible on camera
+	var cam: Camera2D = get_viewport().get_camera_2d()
+	var cam_rect: Rect2 = Rect2()
+	if cam:
+		var vp_size: Vector2 = get_viewport().get_visible_rect().size
+		var half_view: Vector2 = vp_size / (2.0 * cam.zoom)
+		cam_rect = Rect2(cam.global_position - half_view, half_view * 2.0)
 	var closest_dist := INF
 	var closest: Node2D = null
 	for e in _enemies_in_range:
 		if not is_instance_valid(e):
+			continue
+		# Skip enemies outside the camera view
+		if cam and not cam_rect.has_point(e.global_position):
 			continue
 		var dist = global_position.distance_to(e.global_position)
 		if dist < closest_dist:

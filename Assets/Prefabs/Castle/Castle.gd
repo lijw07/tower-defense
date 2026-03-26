@@ -3,6 +3,8 @@ extends Area2D
 signal game_over
 signal lives_changed(current: int, maximum: int)
 signal armor_changed(current: int)
+signal health_damaged          # emitted only on actual HP loss from an enemy hit
+signal armor_blocked           # emitted only when armor absorbs a hit
 
 @export var max_lives: int = 3
 var lives: int
@@ -41,6 +43,7 @@ func _on_area_entered(area):
 			if sfx:
 				sfx.play("armor_block")
 			emit_signal("armor_changed", upgrade_mgr.get_castle_armor())
+			emit_signal("armor_blocked")
 			return
 
 		# No armor — take health damage
@@ -52,5 +55,6 @@ func _on_area_entered(area):
 		else:
 			lives -= 1
 		emit_signal("lives_changed", lives, max_lives)
+		emit_signal("health_damaged")
 		if lives <= 0:
 			emit_signal("game_over")

@@ -10,6 +10,8 @@ var _button_container: HBoxContainer
 var _gold_label: Label
 var _upgrade_btn: Button
 var _tower_buttons: Array[Button] = []
+var _wave_label: Label
+var _enemies_label: Label
 
 var _tooltip_panel: PanelContainer
 var _tooltip_name: Label
@@ -63,6 +65,40 @@ func _build_shop_bar() -> void:
 	hbox.add_theme_constant_override("separation", 10)
 	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	_panel.add_child(hbox)
+
+	# Wave / enemy counter — left side of the toolbar
+	var wave_col := VBoxContainer.new()
+	wave_col.add_theme_constant_override("separation", 2)
+	wave_col.alignment = BoxContainer.ALIGNMENT_CENTER
+	wave_col.size_flags_vertical = Control.SIZE_EXPAND | Control.SIZE_SHRINK_CENTER
+	hbox.add_child(wave_col)
+
+	_wave_label = Label.new()
+	_wave_label.add_theme_font_size_override("font_size", 10)
+	_wave_label.add_theme_color_override("font_color", UITheme.TEXT)
+	var _wf: Font = UITheme.get_pixel_font()
+	if _wf:
+		_wave_label.add_theme_font_override("font", _wf)
+	_wave_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_wave_label.text = "Wave 1"
+	wave_col.add_child(_wave_label)
+
+	_enemies_label = Label.new()
+	_enemies_label.add_theme_font_size_override("font_size", 8)
+	_enemies_label.add_theme_color_override("font_color", UITheme.TEXT_DIM)
+	if _wf:
+		_enemies_label.add_theme_font_override("font", _wf)
+	_enemies_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_enemies_label.text = "0 left"
+	wave_col.add_child(_enemies_label)
+
+	# Separator between wave counter and tower buttons
+	var wave_sep := VSeparator.new()
+	var wave_sep_style := StyleBoxLine.new()
+	wave_sep_style.color = UITheme.SEPARATOR
+	wave_sep_style.thickness = 1
+	wave_sep.add_theme_stylebox_override("separator", wave_sep_style)
+	hbox.add_child(wave_sep)
 
 	_button_container = HBoxContainer.new()
 	_button_container.add_theme_constant_override("separation", 8)
@@ -278,6 +314,19 @@ func _refresh_all_costs() -> void:
 			var scaled: int = GameManager.get_scaled_cost(data.cost, data.tower_name)
 			btn.text = "%dg" % scaled
 			_update_button_affordability(btn, scaled)
+
+func update_wave_display(wave_number: int) -> void:
+	_wave_label.text = "Wave %d" % wave_number
+
+func update_enemy_count(remaining: int, total: int) -> void:
+	_enemies_label.text = "%d / %d" % [remaining, total]
+	# Colour-code: green when few left, orange when many
+	if remaining == 0:
+		_enemies_label.add_theme_color_override("font_color", UITheme.TEXT_GREEN)
+	elif remaining > total * 0.6:
+		_enemies_label.add_theme_color_override("font_color", UITheme.TEXT_ORANGE)
+	else:
+		_enemies_label.add_theme_color_override("font_color", UITheme.TEXT_DIM)
 
 func _update_button_affordability(btn: Button, cost: int) -> void:
 	var can_afford := GameManager.gold >= cost

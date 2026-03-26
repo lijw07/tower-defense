@@ -5,12 +5,20 @@ class_name UITheme
 extends RefCounted
 
 # ── Pixel font ────────────────────────────────────────────────────────────────
+# Silkscreen is much more readable than PressStart2P at small sizes while
+# keeping a crisp pixel-art aesthetic.
 static var _pixel_font: Font = null
+static var _pixel_font_bold: Font = null
 
 static func get_pixel_font() -> Font:
 	if _pixel_font == null:
-		_pixel_font = load("res://Assets/Fonts/PressStart2P-Regular.ttf")
+		_pixel_font = load("res://Assets/Fonts/Silkscreen-Regular.ttf")
 	return _pixel_font
+
+static func get_pixel_font_bold() -> Font:
+	if _pixel_font_bold == null:
+		_pixel_font_bold = load("res://Assets/Fonts/Silkscreen-Bold.ttf")
+	return _pixel_font_bold
 
 # ── Palette ──────────────────────────────────────────────────────────────────
 const BG           := Color(0.08, 0.08, 0.11, 0.94)
@@ -93,7 +101,14 @@ static func make_label(text: String, size: int = 10, color: Color = TEXT) -> Lab
 	return lbl
 
 static func make_title(text: String, size: int = 16) -> Label:
-	return make_label(text, size, GOLD)
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.add_theme_font_size_override("font_size", size)
+	lbl.add_theme_color_override("font_color", GOLD)
+	var pf: Font = get_pixel_font_bold()
+	if pf:
+		lbl.add_theme_font_override("font", pf)
+	return lbl
 
 static func make_separator() -> HSeparator:
 	var sep := HSeparator.new()

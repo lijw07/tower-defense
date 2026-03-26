@@ -138,9 +138,6 @@ func _start_next() -> void:
 	_kill_slide_tween()
 	_panel.visible = false
 	_set_panel_rest()
-	var sfx: Node = get_node_or_null("/root/SFXManager")
-	if sfx:
-		sfx.play("wave_start")
 	emit_signal("next_wave_requested")
 
 func force_hide() -> void:

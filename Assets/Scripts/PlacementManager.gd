@@ -132,15 +132,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			# Check if clicking on an existing tower
 			var clicked_tower = _get_tower_at_mouse()
+			var clicked_deco = _get_decoration_at_mouse()
 			if clicked_tower != null:
-				emit_signal("tower_clicked", clicked_tower)
-				get_viewport().set_input_as_handled()
-			else:
-				# Check if clicking on a decoration
-				var clicked_deco = _get_decoration_at_mouse()
-				if clicked_deco != null:
+				# If the tower is currently transparent (occlusion shader active)
+				# AND there's a decoration behind it, let the click pass through
+				# to the decoration instead.
+				if clicked_deco != null and clicked_tower.has_meta("_occ_active"):
 					emit_signal("decoration_clicked", clicked_deco)
 					get_viewport().set_input_as_handled()
+				else:
+					emit_signal("tower_clicked", clicked_tower)
+					get_viewport().set_input_as_handled()
+			elif clicked_deco != null:
+				emit_signal("decoration_clicked", clicked_deco)
+				get_viewport().set_input_as_handled()
 
 	if _pending_data != null:
 		if event is InputEventMouseButton:
@@ -192,8 +197,35 @@ func sell_tower(tower: Node2D) -> void:
 	_placed_towers.erase(tower)
 	var sfx: Node = get_node_or_null("/root/SFXManager")
 	if sfx:
-		sfx.play("tower_sell")
-	tower.queue_free()
+		sfx.play("tower_destroy")
+	# ── Destruction FX: debris particles + crumble animation ──
+	var destroy_pos: Vector2 = tower.global_position
+	PixelFX.spawn_tower_destroy(get_tree(), destroy_pos)
+	# Disable the tower's Area2D so it stops attacking during animation
+	var area: Area2D = tower.get_node_or_null("Area2D")
+	if area:
+		area.monitoring = false
+		area.monitorable = false
+	# Animated destruction: shake → crumble down → fade out
+	var origin: Vector2 = tower.position
+	var shake_tw: Tween = tower.create_tween()
+	# Quick violent shake
+	shake_tw.tween_property(tower, "position", origin + Vector2(3, -1), 0.03)
+	shake_tw.tween_property(tower, "position", origin + Vector2(-4, 2), 0.03)
+	shake_tw.tween_property(tower, "position", origin + Vector2(2, -2), 0.03)
+	shake_tw.tween_property(tower, "position", origin + Vector2(-1, 1), 0.03)
+	shake_tw.tween_property(tower, "position", origin, 0.02)
+	# Then crumble — squash vertically and sink into ground
+	shake_tw.tween_callback(func() -> void:
+		if not is_instance_valid(tower):
+			return
+		var crumble: Tween = tower.create_tween()
+		crumble.set_parallel(true)
+		crumble.tween_property(tower, "scale", Vector2(1.4, 0.0), 0.35).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_BACK)
+		crumble.tween_property(tower, "position", origin + Vector2(0, 10), 0.35).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+		crumble.tween_property(tower, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN)
+		crumble.chain().tween_callback(tower.queue_free)
+	)
 
 func _get_world_mouse_position() -> Vector2:
 	var viewport = get_viewport()
@@ -246,7 +278,12 @@ func _place_tower(snapped_world_pos: Vector2) -> void:
 	GameManager.record_tower_placed(tower_name, scaled_cost)
 	var sfx: Node = get_node_or_null("/root/SFXManager")
 	if sfx:
-		sfx.play("tower_place")
+		# Play tower-specific placement sound; fall back to generic if not found
+		var place_key: String = "place_" + tower_name.to_lower().replace(" ", "_")
+		if sfx._sounds.has(place_key):
+			sfx.play(place_key)
+		else:
+			sfx.play("tower_place")
 
 	var tile_coords: Vector2i = _ground_layer.local_to_map(
 		_ground_layer.to_local(snapped_world_pos)
@@ -266,6 +303,14 @@ func _place_tower(snapped_world_pos: Vector2) -> void:
 	_occupied_cells[tile_coords] = tower
 	_placed_towers.append(tower)
 
+	# ── Placement FX: smoke + slam animation + camera vibration ──
+	PixelFX.spawn_tower_place(get_tree(), snapped_world_pos)
+	# Slam-down animation — tower drops in from above and bounces
+	tower.scale = Vector2(1.3, 0.6)
+	var slam_tw: Tween = tower.create_tween()
+	slam_tw.tween_property(tower, "scale", Vector2(0.85, 1.2), 0.1).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	slam_tw.tween_property(tower, "scale", Vector2(1.05, 0.92), 0.08).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	slam_tw.tween_property(tower, "scale", Vector2(1.0, 1.0), 0.15).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
 	cancel_placement()
 
 # ── Sprite-bottom alignment helpers ──────────────────────────────────────────

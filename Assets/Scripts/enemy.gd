@@ -47,14 +47,14 @@ func _create_health_bar() -> void:
 	_health_bar_bg.color = Color(0.15, 0.15, 0.15, 0.8)
 	_health_bar_bg.size = Vector2(HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT)
 	_health_bar_bg.position = Vector2(-HEALTH_BAR_WIDTH / 2.0, HEALTH_BAR_OFFSET_Y)
-	_health_bar_bg.z_index = 100
+	_health_bar_bg.z_index = 1
 	add_child(_health_bar_bg)
 
 	_health_bar_fill = ColorRect.new()
 	_health_bar_fill.color = Color(0.2, 0.9, 0.2, 0.9)
 	_health_bar_fill.size = Vector2(HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT)
 	_health_bar_fill.position = Vector2(-HEALTH_BAR_WIDTH / 2.0, HEALTH_BAR_OFFSET_Y)
-	_health_bar_fill.z_index = 101
+	_health_bar_fill.z_index = 2
 	add_child(_health_bar_fill)
 
 func _update_health_bar() -> void:
@@ -105,6 +105,9 @@ func _process(delta: float) -> void:
 			if _poison_aura != null:
 				_poison_aura.queue_free()
 				_poison_aura = null
+
+	# ── Y-based depth sorting (matches decoration z_index formula) ───────────
+	z_index = 1000 + int(global_position.y)
 
 	# ── Path movement ────────────────────────────────────────────────────────
 	if _path_follow == null:

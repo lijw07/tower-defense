@@ -3,6 +3,8 @@ extends Node
 
 signal wave_started(wave_number: int)
 signal wave_completed(wave_number: int)
+signal enemy_count_changed(alive: int, total: int)
+signal boss_spawned
 
 # ── Enemy data for procedural generation ─────────────────────────────────────
 const SLIME      := preload("res://Resource/Enemy/Slime.tres")
@@ -22,6 +24,9 @@ const KING_SLIME := preload("res://Resource/Enemy/KingSlime.tres")
 var _path: Path2D
 var _current_wave_number: int = 0   # 1-based; 0 means not started yet
 var _enemies_alive: int = 0
+var _total_enemies_in_wave: int = 0
+var _total_spawned: int = 0
+var _total_killed: int = 0
 var _is_spawning: bool = false
 
 func _ready() -> void:
@@ -33,7 +38,15 @@ func _ready() -> void:
 func start_next_wave() -> void:
 	_current_wave_number += 1
 	var wave: WaveData = _get_wave(_current_wave_number)
+	# Calculate total enemies in this wave
+	_total_enemies_in_wave = 0
+	for entry in wave.entries:
+		_total_enemies_in_wave += entry.count
+	_total_spawned = 0
+	_total_killed = 0
 	emit_signal("wave_started", _current_wave_number)
+	# remaining = total - killed (none killed yet)
+	emit_signal("enemy_count_changed", _total_enemies_in_wave, _total_enemies_in_wave)
 	_is_spawning = true
 	await _run_wave(wave)
 	_is_spawning = false
@@ -108,6 +121,11 @@ func _build_entries(n: int, excess: int) -> Array[WaveEntry]:
 # ── Spawning ──────────────────────────────────────────────────────────────────
 
 func _run_wave(wave: WaveData) -> void:
+	# Emit boss warning once at wave start if any entry contains a boss
+	for entry in wave.entries:
+		if entry.enemy_data == KING_SLIME:
+			emit_signal("boss_spawned")
+			break
 	for i in range(wave.entries.size()):
 		await _spawn_batch(wave.entries[i], wave.health_scale, wave.speed_scale)
 		if i < wave.entries.size() - 1:
@@ -134,12 +152,17 @@ func _spawn_enemy(data: EnemyData, health_scale: float = 1.0, speed_scale: float
 	enemy.health *= health_scale
 	enemy.speed  *= speed_scale
 	_enemies_alive += 1
+	_total_spawned += 1
 	enemy.tree_exited.connect(_on_enemy_removed)
 
 # ── Wave completion ───────────────────────────────────────────────────────────
 
 func _on_enemy_removed() -> void:
 	_enemies_alive -= 1
+	_total_killed += 1
+	# remaining = total enemies in wave minus those already killed
+	var remaining: int = _total_enemies_in_wave - _total_killed
+	emit_signal("enemy_count_changed", remaining, _total_enemies_in_wave)
 	_check_wave_complete()
 
 func _check_wave_complete() -> void:

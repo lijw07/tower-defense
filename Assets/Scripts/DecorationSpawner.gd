@@ -190,6 +190,13 @@ func remove_decoration(deco: Node2D) -> void:
 	_spawned.erase(deco)
 	# Don't queue_free here — SceneRoot plays an animation first, then frees it
 
+func get_all_decorations() -> Array[Node2D]:
+	var result: Array[Node2D] = []
+	for deco in _spawned:
+		if is_instance_valid(deco):
+			result.append(deco)
+	return result
+
 func get_spawned_positions() -> Array[Vector2]:
 	var positions: Array[Vector2] = []
 	for deco in _spawned:

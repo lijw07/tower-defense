@@ -6,11 +6,13 @@ const MAIN_MENU_PATH = "res://Assets/Scene/main_menu.tscn"
 
 var _is_paused: bool = false
 var _showing_settings: bool = false
+var _showing_howto: bool = false
 
 var _overlay: ColorRect
 var _panel: PanelContainer
 var _main_vbox: VBoxContainer
 var _settings_vbox: VBoxContainer
+var _howto_vbox: VBoxContainer
 
 var _music_slider: HSlider
 var _sfx_slider: HSlider
@@ -30,18 +32,15 @@ func _build_ui() -> void:
 	_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_overlay)
 
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(center)
+
 	_panel = UITheme.make_panel()
 	_panel.visible = false
-
-	# Center on screen
-	_panel.anchor_left = 0.5
-	_panel.anchor_right = 0.5
-	_panel.anchor_top = 0.5
-	_panel.anchor_bottom = 0.5
-	_panel.offset_left = -140
-	_panel.offset_right = 140
-	_panel.offset_top = -110
-	_panel.offset_bottom = 110
+	_panel.custom_minimum_size = Vector2(260, 0)
+	center.add_child(_panel)
 
 	var root_vbox := VBoxContainer.new()
 	root_vbox.add_theme_constant_override("separation", 0)
@@ -62,6 +61,10 @@ func _build_ui() -> void:
 	var resume_btn := UITheme.make_button("Resume")
 	resume_btn.pressed.connect(_on_resume_pressed)
 	_main_vbox.add_child(resume_btn)
+
+	var howto_btn := UITheme.make_button("How to Play")
+	howto_btn.pressed.connect(func() -> void: _show_howto())
+	_main_vbox.add_child(howto_btn)
 
 	var settings_btn := UITheme.make_button("Settings")
 	settings_btn.pressed.connect(_show_settings)
@@ -132,7 +135,48 @@ func _build_ui() -> void:
 	back_btn.pressed.connect(_hide_settings)
 	_settings_vbox.add_child(back_btn)
 
-	add_child(_panel)
+	# ── How to Play panel ──
+	_howto_vbox = VBoxContainer.new()
+	_howto_vbox.add_theme_constant_override("separation", 6)
+	_howto_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	_howto_vbox.visible = false
+	root_vbox.add_child(_howto_vbox)
+
+	var htitle := UITheme.make_title("How to Play", 14)
+	htitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_howto_vbox.add_child(htitle)
+
+	_howto_vbox.add_child(UITheme.make_separator())
+
+	var tips: Array[String] = [
+		"[color=#e8c654]Goal:[/color] Defend your castle from waves of enemies marching along the path.",
+		"[color=#e8c654]Towers:[/color] Buy towers from the shop bar at the bottom and place them on the grass. They attack enemies automatically.",
+		"[color=#e8c654]Gold:[/color] Earn gold by killing enemies. Spend it on new towers, upgrades, or removing obstacles.",
+		"[color=#e8c654]Upgrades:[/color] Open the upgrade shop to improve your towers, castle health, and armor.",
+		"[color=#e8c654]Selling:[/color] Click a placed tower to sell it for a partial refund.",
+		"[color=#e8c654]Obstacles:[/color] Trees, rocks, and mushrooms block placement. Hover over them and click to remove for a cost.",
+		"[color=#e8c654]Bosses:[/color] A red border flash and warning text signal a boss enemy. They have much more health!",
+	]
+	for tip_text in tips:
+		var tip := RichTextLabel.new()
+		tip.bbcode_enabled = true
+		tip.fit_content = true
+		tip.scroll_active = false
+		tip.text = tip_text
+		tip.custom_minimum_size = Vector2(240, 0)
+		tip.add_theme_color_override("default_color", UITheme.TEXT)
+		tip.add_theme_font_size_override("normal_font_size", 7)
+		tip.add_theme_font_size_override("bold_font_size", 7)
+		var pf: Font = UITheme.get_pixel_font()
+		if pf:
+			tip.add_theme_font_override("normal_font", pf)
+			tip.add_theme_font_override("bold_font", pf)
+		tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_howto_vbox.add_child(tip)
+
+	var hback_btn := UITheme.make_button("Back")
+	hback_btn.pressed.connect(func() -> void: _hide_howto())
+	_howto_vbox.add_child(hback_btn)
 
 
 func _pct(val: float) -> String:
@@ -155,20 +199,38 @@ func _on_sfx_volume_changed(value: float) -> void:
 
 
 func _show_settings() -> void:
+	_play_sfx("button_click")
 	_showing_settings = true
 	_main_vbox.visible = false
 	_settings_vbox.visible = true
 
 
 func _hide_settings() -> void:
+	_play_sfx("button_click")
 	_showing_settings = false
 	_settings_vbox.visible = false
 	_main_vbox.visible = true
 
 
+func _show_howto() -> void:
+	_play_sfx("button_click")
+	_showing_howto = true
+	_main_vbox.visible = false
+	_howto_vbox.visible = true
+
+
+func _hide_howto() -> void:
+	_play_sfx("button_click")
+	_showing_howto = false
+	_howto_vbox.visible = false
+	_main_vbox.visible = true
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		if _showing_settings:
+		if _showing_howto:
+			_hide_howto()
+		elif _showing_settings:
 			_hide_settings()
 		elif _is_paused:
 			_resume()
@@ -179,28 +241,39 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+func _play_sfx(sound_name: String) -> void:
+	var sfx: Node = get_node_or_null("/root/SFXManager")
+	if sfx:
+		sfx.play(sound_name)
+
 func _pause() -> void:
 	_is_paused = true
 	_overlay.visible = true
 	_panel.visible = true
+	_play_sfx("shop_open")
 	get_tree().paused = true
 
 
 func _resume() -> void:
 	_is_paused = false
 	_showing_settings = false
+	_showing_howto = false
 	_overlay.visible = false
 	_panel.visible = false
 	_settings_vbox.visible = false
+	_howto_vbox.visible = false
 	_main_vbox.visible = true
+	_play_sfx("shop_close")
 	get_tree().paused = false
 
 
 func _on_resume_pressed() -> void:
+	_play_sfx("button_click")
 	_resume()
 
 
 func _on_exit_pressed() -> void:
+	_play_sfx("button_click")
 	_is_paused = false
 	_showing_settings = false
 	_overlay.visible = false

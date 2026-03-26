@@ -7,6 +7,9 @@ var _grid: GridContainer
 var _tower_cards: Array[Dictionary] = []
 var _upgrade_mgr: Node
 var _tower_data_list: Array = []
+var _scroll: ScrollContainer
+var _dragging_scroll: bool = false
+var _drag_prev_y: float = 0.0       # previous frame's mouse Y for incremental drag
 
 # Castle upgrade UI references
 var _castle_hp_level_lbl: Label
@@ -18,13 +21,13 @@ var _castle_armor_btn: Button
 var _castle_heal_cost_lbl: Label
 var _castle_heal_btn: Button
 
-const CARD_WIDTH: float = 120.0
-const CARD_INNER: float = 100.0
-const BTN_SIZE := Vector2(100, 20)
-const SMALL_BTN := Vector2(48, 18)
-const FONT_TITLE: int = 8
-const FONT_SMALL: int = 6
-const FONT_BTN: int = 6
+const CARD_WIDTH: float = 140.0
+const CARD_INNER: float = 120.0
+const BTN_SIZE := Vector2(110, 24)
+const SMALL_BTN := Vector2(52, 22)
+const FONT_TITLE: int = 11
+const FONT_SMALL: int = 9
+const FONT_BTN: int = 9
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -50,40 +53,51 @@ func _build_shop_panel() -> void:
 	add_child(_overlay)
 	_overlay.gui_input.connect(_on_overlay_input)
 
-	# Center container
+	# Center container — fills the viewport
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_overlay.add_child(center)
 
-	# Use a compact panel style with smaller margins
+	# Panel with styled background
 	_panel = PanelContainer.new()
 	var panel_style := UITheme.make_panel_style(UITheme.BG, 2, 6)
-	panel_style.set_content_margin_all(8)
+	panel_style.set_content_margin_all(10)
 	_panel.add_theme_stylebox_override("panel", panel_style)
 	center.add_child(_panel)
 
+	# ScrollContainer wraps content — enables scroll wheel when content overflows
+	_scroll = ScrollContainer.new()
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	# Hide scrollbar for cleaner pixel-art look
+	_scroll.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	# Drag-to-scroll input handling (no scroll wheel, no scrollbar — drag only)
+	_scroll.gui_input.connect(_on_scroll_input)
+	_panel.add_child(_scroll)
+
 	var outer_vbox := VBoxContainer.new()
-	outer_vbox.add_theme_constant_override("separation", 6)
-	_panel.add_child(outer_vbox)
+	outer_vbox.add_theme_constant_override("separation", 8)
+	outer_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.add_child(outer_vbox)
 
 	# Title
-	var title := UITheme.make_label("Shop", 14, UITheme.GOLD)
+	var title := UITheme.make_title("Shop", 16)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	outer_vbox.add_child(title)
 
 	outer_vbox.add_child(UITheme.make_separator())
 
 	# ── Tower section header ──
-	var tower_header := UITheme.make_label("Towers", 10, UITheme.TEXT_DIM)
+	var tower_header := UITheme.make_label("Towers", 12, UITheme.TEXT_DIM)
 	tower_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	outer_vbox.add_child(tower_header)
 
 	# 3-column grid for towers
 	_grid = GridContainer.new()
 	_grid.columns = 3
-	_grid.add_theme_constant_override("h_separation", 6)
-	_grid.add_theme_constant_override("v_separation", 6)
+	_grid.add_theme_constant_override("h_separation", 8)
+	_grid.add_theme_constant_override("v_separation", 8)
 	outer_vbox.add_child(_grid)
 
 	for data in _tower_data_list:
@@ -92,14 +106,14 @@ func _build_shop_panel() -> void:
 	outer_vbox.add_child(UITheme.make_separator())
 
 	# ── Castle section header ──
-	var castle_header := UITheme.make_label("Castle", 10, UITheme.TEXT_DIM)
+	var castle_header := UITheme.make_label("Castle", 12, UITheme.TEXT_DIM)
 	castle_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	outer_vbox.add_child(castle_header)
 
 	var castle_grid := GridContainer.new()
 	castle_grid.columns = 3
-	castle_grid.add_theme_constant_override("h_separation", 6)
-	castle_grid.add_theme_constant_override("v_separation", 6)
+	castle_grid.add_theme_constant_override("h_separation", 8)
+	castle_grid.add_theme_constant_override("v_separation", 8)
 	outer_vbox.add_child(castle_grid)
 
 	_build_castle_health_card(castle_grid)
@@ -109,12 +123,18 @@ func _build_shop_panel() -> void:
 	outer_vbox.add_child(UITheme.make_separator())
 
 	# Close button
-	var close_btn := UITheme.make_button("Close", Vector2(80, 20))
-	close_btn.add_theme_font_size_override("font_size", 6)
+	var close_btn := UITheme.make_button("Close", Vector2(100, 24))
+	close_btn.add_theme_font_size_override("font_size", FONT_BTN)
 	close_btn.pressed.connect(toggle_shop)
 	var close_row := CenterContainer.new()
 	close_row.add_child(close_btn)
 	outer_vbox.add_child(close_row)
+
+	# Cap scroll height to 90% of viewport — content that exceeds this scrolls
+	var vp_h: float = get_viewport().get_visible_rect().size.y
+	var max_scroll_h: float = vp_h * 0.9
+	var content_h: float = outer_vbox.get_combined_minimum_size().y
+	_scroll.custom_minimum_size.y = min(content_h, max_scroll_h)
 
 # ── Castle cards ──────────────────────────────────────────────────────────────
 
@@ -123,7 +143,7 @@ func _build_castle_health_card(parent: GridContainer) -> void:
 	parent.add_child(card)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 3)
+	vbox.add_theme_constant_override("separation", 5)
 	card.add_child(vbox)
 
 	var hp_title := UITheme.make_label("Castle HP", FONT_TITLE, UITheme.TEXT)
@@ -133,11 +153,13 @@ func _build_castle_health_card(parent: GridContainer) -> void:
 	var desc := UITheme.make_label("+1 max HP per level", FONT_SMALL, UITheme.TEXT_DIM)
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc.custom_minimum_size.x = CARD_INNER
+	desc.custom_minimum_size = Vector2(CARD_INNER, 28)
 	vbox.add_child(desc)
 
 	_castle_hp_level_lbl = UITheme.make_label("Lv 0", FONT_SMALL, UITheme.TEXT_GREEN)
 	_castle_hp_level_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_castle_hp_level_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_castle_hp_level_lbl.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	vbox.add_child(_castle_hp_level_lbl)
 
 	var hp_btn_row := CenterContainer.new()
@@ -156,7 +178,7 @@ func _build_castle_armor_card(parent: GridContainer) -> void:
 	parent.add_child(card)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 3)
+	vbox.add_theme_constant_override("separation", 5)
 	card.add_child(vbox)
 
 	var armor_title := UITheme.make_label("Armor", FONT_TITLE, UITheme.TEXT)
@@ -166,11 +188,13 @@ func _build_castle_armor_card(parent: GridContainer) -> void:
 	var desc := UITheme.make_label("Blocks 1 full hit. Max 10.", FONT_SMALL, UITheme.TEXT_DIM)
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc.custom_minimum_size.x = CARD_INNER
+	desc.custom_minimum_size = Vector2(CARD_INNER, 28)
 	vbox.add_child(desc)
 
 	_castle_armor_count_lbl = UITheme.make_label("0 / 10", FONT_SMALL, UITheme.TEXT_GREEN)
 	_castle_armor_count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_castle_armor_count_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_castle_armor_count_lbl.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	vbox.add_child(_castle_armor_count_lbl)
 
 	var armor_btn_row := CenterContainer.new()
@@ -189,7 +213,7 @@ func _build_castle_heal_card(parent: GridContainer) -> void:
 	parent.add_child(card)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 3)
+	vbox.add_theme_constant_override("separation", 5)
 	card.add_child(vbox)
 
 	var heal_title := UITheme.make_label("Heal", FONT_TITLE, UITheme.TEXT)
@@ -199,12 +223,12 @@ func _build_castle_heal_card(parent: GridContainer) -> void:
 	var desc := UITheme.make_label("Restore +1 HP to castle.", FONT_SMALL, UITheme.TEXT_DIM)
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc.custom_minimum_size.x = CARD_INNER
+	desc.custom_minimum_size = Vector2(CARD_INNER, 28)
 	vbox.add_child(desc)
 
-	# Spacer to align with other cards
+	# Expand-fill spacer pushes button to bottom, aligned with HP/Armor cards
 	var spacer := Control.new()
-	spacer.custom_minimum_size.y = 2
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(spacer)
 
 	var heal_btn_row := CenterContainer.new()
@@ -223,7 +247,7 @@ func _build_castle_heal_card(parent: GridContainer) -> void:
 func _make_card_panel() -> PanelContainer:
 	var card := PanelContainer.new()
 	var s := UITheme.make_panel_style(UITheme.BG_LIGHTER, 1, 0)
-	s.set_content_margin_all(6)
+	s.set_content_margin_all(8)
 	card.add_theme_stylebox_override("panel", s)
 	card.custom_minimum_size = Vector2(CARD_WIDTH, 0)
 	return card
@@ -233,7 +257,7 @@ func _build_tower_card(data: TowerData) -> void:
 	_grid.add_child(card_panel)
 
 	var card_vbox := VBoxContainer.new()
-	card_vbox.add_theme_constant_override("separation", 4)
+	card_vbox.add_theme_constant_override("separation", 5)
 	card_panel.add_child(card_vbox)
 
 	# Header: icon + name
@@ -244,7 +268,7 @@ func _build_tower_card(data: TowerData) -> void:
 	if data.icon != null:
 		var icon_rect := TextureRect.new()
 		icon_rect.texture = data.icon
-		icon_rect.custom_minimum_size = Vector2(16, 16)
+		icon_rect.custom_minimum_size = Vector2(20, 20)
 		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		header.add_child(icon_rect)
@@ -260,35 +284,49 @@ func _build_tower_card(data: TowerData) -> void:
 	# Description — always visible, even after unlock
 	var desc_lbl := UITheme.make_label(data.description, FONT_SMALL, UITheme.TEXT_DIM)
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_lbl.custom_minimum_size.x = CARD_INNER
+	desc_lbl.custom_minimum_size = Vector2(CARD_INNER, 28)
 	card_vbox.add_child(desc_lbl)
 
-	# State wrapper — fixed height so the card never resizes on unlock
+	# State wrapper — expand to fill remaining space so buttons align across cards
 	var state_wrapper := Control.new()
-	state_wrapper.custom_minimum_size.y = 42
+	state_wrapper.custom_minimum_size.y = 50
+	state_wrapper.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	card_vbox.add_child(state_wrapper)
 
-	# Locked content (unlock button only)
+	# Locked content — same 3-row structure as unlocked (label/btn/cost) for alignment
 	var locked_box := VBoxContainer.new()
 	locked_box.add_theme_constant_override("separation", 4)
-	locked_box.set_anchors_preset(Control.PRESET_FULL_RECT)
+	locked_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	locked_box.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	locked_box.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	state_wrapper.add_child(locked_box)
+
+	# Top spacer — matches the level label row in unlocked columns
+	var lock_spacer_top := UITheme.make_label("", FONT_SMALL, UITheme.TEXT_DIM)
+	lock_spacer_top.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	locked_box.add_child(lock_spacer_top)
 
 	var unlock_btn := UITheme.make_button("Unlock", BTN_SIZE)
 	unlock_btn.add_theme_font_size_override("font_size", FONT_BTN)
 	unlock_btn.pressed.connect(_on_unlock_pressed.bind(data))
 	locked_box.add_child(unlock_btn)
 
-	# Unlocked content: DMG + SPD side by side
+	# Bottom cost label — matches the cost label row in unlocked columns
+	var unlock_cost_lbl := UITheme.make_label("", FONT_SMALL, UITheme.GOLD)
+	unlock_cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	locked_box.add_child(unlock_cost_lbl)
+
+	# Unlocked content: DMG + SPD side by side — anchored to bottom for alignment
 	var unlocked_box := HBoxContainer.new()
 	unlocked_box.add_theme_constant_override("separation", 8)
 	unlocked_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	unlocked_box.set_anchors_preset(Control.PRESET_FULL_RECT)
+	unlocked_box.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	unlocked_box.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	state_wrapper.add_child(unlocked_box)
 
 	# DMG column
 	var dmg_col := VBoxContainer.new()
-	dmg_col.add_theme_constant_override("separation", 3)
+	dmg_col.add_theme_constant_override("separation", 4)
 	dmg_col.alignment = BoxContainer.ALIGNMENT_CENTER
 	dmg_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	unlocked_box.add_child(dmg_col)
@@ -308,7 +346,7 @@ func _build_tower_card(data: TowerData) -> void:
 
 	# SPD column
 	var spd_col := VBoxContainer.new()
-	spd_col.add_theme_constant_override("separation", 3)
+	spd_col.add_theme_constant_override("separation", 4)
 	spd_col.alignment = BoxContainer.ALIGNMENT_CENTER
 	spd_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	unlocked_box.add_child(spd_col)
@@ -334,6 +372,7 @@ func _build_tower_card(data: TowerData) -> void:
 		"stats_lbl": stats_lbl,
 		"locked_box": locked_box,
 		"unlock_btn": unlock_btn,
+		"unlock_cost_lbl": unlock_cost_lbl,
 		"unlocked_box": unlocked_box,
 		"dmg_btn": dmg_btn,
 		"dmg_cost_lbl": dmg_cost_lbl,
@@ -357,7 +396,8 @@ func _refresh_card(cd: Dictionary) -> void:
 
 	if not unlocked:
 		cd.stats_lbl.text = "DMG: %.0f | SPD: %.2fs" % [data.damage, data.attack_speed]
-		cd.unlock_btn.text = "Unlock %dG" % data.unlock_cost
+		cd.unlock_btn.text = "Unlock"
+		cd.unlock_cost_lbl.text = "%dG" % data.unlock_cost
 		var can_buy := GameManager.gold >= data.unlock_cost
 		cd.unlock_btn.disabled = not can_buy
 		cd.unlock_btn.modulate = Color.WHITE if can_buy else Color(0.4, 0.4, 0.4, 0.7)
@@ -485,6 +525,25 @@ func _on_buy_castle_heal() -> void:
 func _on_gold_changed(_amount: int) -> void:
 	if _overlay.visible:
 		_refresh_all()
+
+func _on_scroll_input(event: InputEvent) -> void:
+	# Block scroll wheel entirely — only allow click-drag scrolling
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			_scroll.get_viewport().set_input_as_handled()
+			return
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				_dragging_scroll = true
+				_drag_prev_y = event.global_position.y
+			else:
+				_dragging_scroll = false
+	if event is InputEventMouseMotion and _dragging_scroll:
+		# Incremental drag: move scroll by a fraction of the mouse delta each frame
+		var delta_y: float = _drag_prev_y - event.global_position.y
+		_drag_prev_y = event.global_position.y
+		_scroll.scroll_vertical = maxi(_scroll.scroll_vertical + int(delta_y * 0.12), 0)
+		_scroll.get_viewport().set_input_as_handled()
 
 func _on_overlay_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
